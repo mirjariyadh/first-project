@@ -1,15 +1,642 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mirja Riyadh — BIM Modeler &amp; Revit Specialist</title>
+<meta name="description" content="Mirja Riyadh is a BIM Modeler and Revit Specialist delivering Architectural, Structural, MEP and Scan-to-BIM services for AEC teams worldwide.">
+<link rel="icon" href="data:,">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #090d13;
+    --bg-elev: #10161f;
+    --line: #202b38;
+    --line-soft: #161e28;
+    --ink: #eaf0f6;
+    --ink-dim: #8fa0b3;
+    --cyan: #4fd8c4;
+    --amber: #ff8a3d;
+    --radius: 2px;
+    --wrap: 1160px;
+    --ease: cubic-bezier(.16,.8,.24,1);
+  }
+
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Inter', sans-serif;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  ::selection{background:var(--cyan); color:#04110f;}
+
+  h1,h2,h3{ font-family:'Space Grotesk', sans-serif; font-weight:600; letter-spacing:-0.01em; }
+  .mono{ font-family:'IBM Plex Mono', monospace; letter-spacing:0.02em; }
+
+  a{ color:inherit; text-decoration:none; }
+  img{max-width:100%; display:block;}
+  section{ position:relative; }
+  .wrap{ max-width:var(--wrap); margin:0 auto; padding:0 32px; }
+
+  /* ---------- background grid ---------- */
+  .blueprint-grid{
+    position:absolute; inset:0;
+    background-image:
+      linear-gradient(var(--line-soft) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line-soft) 1px, transparent 1px);
+    background-size: 48px 48px;
+    -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 30%, black 40%, transparent 85%);
+            mask-image: radial-gradient(ellipse 80% 60% at 50% 30%, black 40%, transparent 85%);
+    pointer-events:none;
+  }
+
+  /* ---------- corner marks (CAD viewport style) ---------- */
+  .sheet{ position:relative; border:1px solid var(--line); }
+  .sheet::before, .sheet::after,
+  .sheet .cbl, .sheet .cbr{
+    content:''; position:absolute; width:10px; height:10px; pointer-events:none;
+  }
+  .sheet::before{ top:-1px; left:-1px; border-top:1px solid var(--cyan); border-left:1px solid var(--cyan);}
+  .sheet::after{ top:-1px; right:-1px; border-top:1px solid var(--cyan); border-right:1px solid var(--cyan);}
+  .sheet .cbl{ bottom:-1px; left:-1px; border-bottom:1px solid var(--cyan); border-left:1px solid var(--cyan);}
+  .sheet .cbr{ bottom:-1px; right:-1px; border-bottom:1px solid var(--cyan); border-right:1px solid var(--cyan);}
+
+  /* ---------- nav ---------- */
+  header{
+    position:fixed; top:0; left:0; right:0; z-index:100;
+    background:rgba(9,13,19,0.72);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  nav.wrap{ display:flex; align-items:center; justify-content:space-between; height:72px; }
+  .logo{ display:flex; align-items:center; gap:10px; font-family:'Space Grotesk'; font-weight:600; font-size:17px; }
+  .logo-mark{ width:26px; height:26px; border:1px solid var(--cyan); position:relative; flex:none; }
+  .logo-mark::before{ content:''; position:absolute; inset:5px; border:1px solid var(--cyan); opacity:.5; }
+  .nav-links{ display:flex; gap:2px; list-style:none; }
+  .nav-links a{
+    display:flex; align-items:center; gap:6px;
+    padding:8px 16px; font-size:13px; color:var(--ink-dim);
+    transition:color .2s var(--ease);
+  }
+  .nav-links a span.idx{ font-family:'IBM Plex Mono'; font-size:10px; color:var(--cyan); }
+  .nav-links a:hover{ color:var(--ink); }
+  .nav-cta{
+    font-size:13px; padding:9px 18px; border:1px solid var(--cyan); color:var(--cyan);
+    transition:background .2s var(--ease), color .2s var(--ease);
+  }
+  .nav-cta:hover{ background:var(--cyan); color:#04110f; }
+  .burger{ display:none; }
+
+  /* ---------- hero ---------- */
+  .hero{
+    min-height:100vh; display:flex; flex-direction:column; justify-content:center;
+    padding-top:110px; padding-bottom:60px;
+  }
+  #pointcloud{ position:absolute; inset:0; width:100%; height:100%; z-index:0; }
+  .hero .wrap{ position:relative; z-index:2; }
+  .eyebrow{
+    display:inline-flex; align-items:center; gap:10px;
+    font-family:'IBM Plex Mono'; font-size:12px; color:var(--cyan);
+    border:1px solid var(--line); padding:6px 12px; margin-bottom:28px;
+  }
+  .eyebrow::before{ content:'●'; font-size:8px; color:var(--cyan); animation:blink 2s infinite; }
+  @keyframes blink{ 50%{opacity:.2;} }
+
+  .hero h1{
+    font-size:clamp(42px, 7vw, 92px); line-height:0.98; color:var(--ink);
+  }
+  .hero h1 em{ font-style:normal; color:var(--cyan); }
+  .hero-role{
+    font-family:'Space Grotesk'; font-size:clamp(18px,2.4vw,26px); color:var(--ink-dim);
+    margin-top:18px;
+  }
+  .typed-line{
+    font-family:'IBM Plex Mono'; font-size:15px; color:var(--amber); margin-top:22px; height:20px;
+  }
+  .typed-line .cursor{ display:inline-block; width:8px; background:var(--amber); margin-left:2px; animation:caret 1s steps(1) infinite; }
+  @keyframes caret{ 50%{ opacity:0; } }
+
+  .hero-actions{ display:flex; gap:14px; margin-top:44px; flex-wrap:wrap; }
+  .btn{
+    font-size:14px; font-weight:500; padding:14px 28px; border:1px solid transparent;
+    display:inline-flex; align-items:center; gap:10px; transition:all .25s var(--ease);
+  }
+  .btn-primary{ background:var(--cyan); color:#04110f; }
+  .btn-primary:hover{ background:#7fe6d6; transform:translateY(-2px); }
+  .btn-ghost{ border-color:var(--line); color:var(--ink); }
+  .btn-ghost:hover{ border-color:var(--cyan); color:var(--cyan); }
+
+  .scroll-cue{
+    position:absolute; bottom:36px; left:32px; display:flex; align-items:center; gap:10px;
+    font-family:'IBM Plex Mono'; font-size:11px; color:var(--ink-dim);
+  }
+  .scroll-cue .line{ width:1px; height:38px; background:linear-gradient(var(--cyan), transparent); }
+
+  /* ---------- section headers ---------- */
+  .sec-head{ margin-bottom:56px; }
+  .sec-tag{ font-family:'IBM Plex Mono'; font-size:12px; color:var(--cyan); display:block; margin-bottom:14px; }
+  .sec-tag::before{ content:'// '; color:var(--ink-dim); }
+  .sec-head h2{ font-size:clamp(28px,4vw,44px); }
+  .sec-head p{ color:var(--ink-dim); max-width:520px; margin-top:14px; font-size:15px; }
+
+  section.pad{ padding:120px 0; border-top:1px solid var(--line); }
+
+  /* ---------- about ---------- */
+  .about-grid{ display:grid; grid-template-columns:1.1fr 0.9fr; gap:64px; align-items:start; }
+  .about-copy p{ color:var(--ink-dim); margin-bottom:18px; font-size:16px; max-width:520px; }
+  .about-copy p:first-child{ color:var(--ink); font-size:18px; }
+
+  .titleblock{ padding:0; }
+  .titleblock .row{
+    display:flex; justify-content:space-between; padding:18px 24px; border-bottom:1px solid var(--line);
+  }
+  .titleblock .row:last-child{ border-bottom:none; }
+  .titleblock .row .label{ font-family:'IBM Plex Mono'; font-size:11px; color:var(--ink-dim); text-transform:uppercase; }
+  .titleblock .row .val{ font-family:'Space Grotesk'; font-size:26px; color:var(--cyan); }
+  .titleblock .row .val small{ font-family:'IBM Plex Mono'; font-size:12px; color:var(--ink-dim); margin-left:6px; }
+
+  /* ---------- skills ---------- */
+  .skills-list{ display:flex; flex-direction:column; gap:22px; max-width:640px; }
+  .skill-row{ display:grid; grid-template-columns:150px 1fr 50px; align-items:center; gap:18px; }
+  .skill-row .name{ font-family:'Space Grotesk'; font-size:15px; }
+  .skill-track{ height:6px; background:var(--line-soft); position:relative; }
+  .skill-fill{ position:absolute; inset:0; width:0; background:linear-gradient(90deg, var(--cyan), var(--amber)); transition:width 1.4s var(--ease); }
+  .skill-row .pct{ font-family:'IBM Plex Mono'; font-size:12px; color:var(--ink-dim); text-align:right; }
+
+  /* ---------- services ---------- */
+  .service-grid{ display:grid; grid-template-columns:repeat(3, 1fr); gap:1px; background:var(--line); border:1px solid var(--line); }
+  .service-card{
+    background:var(--bg); padding:36px 30px; position:relative; overflow:hidden;
+    transition:background .3s var(--ease);
+  }
+  .service-card:hover{ background:var(--bg-elev); }
+  .service-card .num{ font-family:'IBM Plex Mono'; font-size:11px; color:var(--ink-dim); }
+  .service-card svg{ width:36px; height:36px; margin:22px 0 18px; stroke:var(--cyan); }
+  .service-card h3{ font-size:18px; margin-bottom:10px; }
+  .service-card p{ font-size:13.5px; color:var(--ink-dim); }
+
+  /* ---------- stats band ---------- */
+  .stats-band{ border-top:1px solid var(--line); border-bottom:1px solid var(--line); padding:64px 0; }
+  .stats-grid{ display:grid; grid-template-columns:repeat(4,1fr); }
+  .stat{ text-align:center; border-left:1px solid var(--line); padding:0 20px; }
+  .stat:first-child{ border-left:none; }
+  .stat .num{ font-family:'Space Grotesk'; font-size:clamp(32px,4vw,52px); color:var(--cyan); }
+  .stat .lbl{ font-family:'IBM Plex Mono'; font-size:11px; color:var(--ink-dim); text-transform:uppercase; margin-top:8px; }
+
+  /* ---------- contact ---------- */
+  .contact-grid{ display:grid; grid-template-columns:1fr 1fr; gap:64px; }
+  .contact-copy h2{ font-size:clamp(30px,4.4vw,50px); margin-bottom:20px; }
+  .contact-copy p{ color:var(--ink-dim); max-width:440px; margin-bottom:32px; }
+  .contact-links{ display:flex; flex-direction:column; }
+  .contact-links a{
+    display:flex; justify-content:space-between; align-items:center;
+    padding:18px 4px; border-bottom:1px solid var(--line); font-size:16px;
+    transition:color .2s var(--ease), padding-left .2s var(--ease);
+  }
+  .contact-links a:hover{ color:var(--cyan); padding-left:10px; }
+  .contact-links a .arrow{ font-family:'IBM Plex Mono'; color:var(--ink-dim); font-size:13px; }
+
+  .contact-form{ display:flex; flex-direction:column; gap:1px; background:var(--line); border:1px solid var(--line); }
+  .contact-form input, .contact-form textarea{
+    background:var(--bg); border:none; color:var(--ink); padding:16px; font-family:'Inter'; font-size:14px;
+  }
+  .contact-form input:focus, .contact-form textarea:focus{ outline:2px solid var(--cyan); outline-offset:-2px; }
+  .contact-form textarea{ resize:vertical; min-height:100px; }
+  .contact-form button{
+    background:var(--cyan); color:#04110f; border:none; padding:16px; font-weight:600; font-size:14px; cursor:pointer;
+    transition:background .2s var(--ease);
+  }
+  .contact-form button:hover{ background:#7fe6d6; }
+  .form-msg{ font-family:'IBM Plex Mono'; font-size:12px; color:var(--cyan); min-height:16px; }
+
+  /* ---------- footer ---------- */
+  footer{ border-top:1px solid var(--line); padding:36px 0; }
+  footer .wrap{ display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:16px; }
+  footer .foot-links{ display:flex; gap:22px; list-style:none; }
+  footer .foot-links a{ font-size:13px; color:var(--ink-dim); transition:color .2s; }
+  footer .foot-links a:hover{ color:var(--cyan); }
+  .copyright{ font-family:'IBM Plex Mono'; font-size:12px; color:var(--ink-dim); }
+  .to-top{ font-family:'IBM Plex Mono'; font-size:12px; border:1px solid var(--line); padding:8px 14px; transition:border-color .2s, color .2s; color:var(--ink-dim); }
+  .to-top:hover{ border-color:var(--cyan); color:var(--cyan); }
+
+  [data-reveal]{ opacity:0; transform:translateY(24px); transition:opacity .7s var(--ease), transform .7s var(--ease); }
+  [data-reveal].is-visible{ opacity:1; transform:translateY(0); }
+
+  @media (max-width: 860px){
+    .nav-links{ display:none; }
+    .about-grid, .contact-grid{ grid-template-columns:1fr; }
+    .service-grid{ grid-template-columns:1fr 1fr; }
+    .stats-grid{ grid-template-columns:1fr 1fr; }
+    .stat{ border-left:none; border-top:1px solid var(--line); padding:24px 10px 0; }
+    .stat:first-child, .stat:nth-child(2){ border-top:none; }
+  }
+  @media (max-width: 560px){
+    .service-grid{ grid-template-columns:1fr; }
+    .skill-row{ grid-template-columns:100px 1fr 40px; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation:none !important; transition:none !important; }
+    [data-reveal]{ opacity:1; transform:none; }
+  }
+</style>
 </head>
 <body>
-    <h1>My project</h1>
-    <p>This is my modification.</p>
 
-    <input type="email" name="email">
-    <input type="submit" value="Send">
+<header>
+  <nav class="wrap">
+    <a href="#top" class="logo"><span class="logo-mark"></span> MIRJA RIYADH</a>
+    <ul class="nav-links">
+      <li><a href="#about"><span class="idx">01</span> About</a></li>
+      <li><a href="#skills"><span class="idx">02</span> Skills</a></li>
+      <li><a href="#services"><span class="idx">03</span> Services</a></li>
+      <li><a href="#contact"><span class="idx">04</span> Contact</a></li>
+    </ul>
+    <a href="#contact" class="nav-cta">Hire Me</a>
+  </nav>
+</header>
+
+<main id="top">
+
+  <!-- HERO -->
+  <section class="hero">
+    <canvas id="pointcloud"></canvas>
+    <div class="blueprint-grid"></div>
+    <div class="wrap">
+      <span class="eyebrow mono">SCAN&nbsp;→&nbsp;MODEL&nbsp;→&nbsp;DOCUMENT</span>
+      <h1>Mirja<br>Riyadh<em>.</em></h1>
+      <div class="hero-role">BIM Modeler <span class="mono" style="color:var(--ink-dim); font-size:18px;">/</span> Revit Specialist</div>
+      <div class="typed-line"><span id="typed"></span><span class="cursor">&nbsp;</span></div>
+      <div class="hero-actions">
+        <a href="#contact" class="btn btn-primary">Hire Me →</a>
+        <a href="#" class="btn btn-ghost">Download CV</a>
+      </div>
+    </div>
+    <div class="scroll-cue"><span class="line"></span> SCROLL</div>
+  </section>
+
+  <!-- ABOUT -->
+  <section class="pad" id="about">
+    <div class="wrap">
+      <div class="sec-head" data-reveal>
+        <span class="sec-tag">01 — About</span>
+        <h2>Precision modeling for teams<br>who build for real.</h2>
+      </div>
+      <div class="about-grid">
+        <div class="about-copy" data-reveal>
+          <p>I turn drawings, point clouds, and half-finished CAD files into coordinated, clash-free BIM models — the kind that hold up on site, not just in a render.</p>
+          <p>Over the past several years I've worked inside architecture, structural, and MEP workflows for studios and contractors across multiple countries, taking projects from raw survey data through to construction-ready documentation.</p>
+          <p>My approach is simple: model at LOD the project actually needs, keep families clean and parametric, and hand back a file a team can keep working in — not one they have to fix first.</p>
+        </div>
+        <div class="titleblock sheet" data-reveal>
+          <div class="cbl"></div><div class="cbr"></div>
+          <div class="row"><span class="label mono">Experience</span><span class="val">6<small>YRS</small></span></div>
+          <div class="row"><span class="label mono">Countries Served</span><span class="val">12<small>COUNTRIES</small></span></div>
+          <div class="row"><span class="label mono">Projects Delivered</span><span class="val">140<small>+</small></span></div>
+          <div class="row"><span class="label mono">Primary Platform</span><span class="val" style="font-size:20px;">Autodesk Revit</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SKILLS -->
+  <section class="pad" id="skills">
+    <div class="wrap">
+      <div class="sec-head" data-reveal>
+        <span class="sec-tag">02 — Toolkit</span>
+        <h2>Software fluency,<br>by proficiency.</h2>
+      </div>
+      <div class="skills-list">
+        <div class="skill-row" data-reveal><span class="name">Revit</span><div class="skill-track"><div class="skill-fill" data-pct="96"></div></div><span class="pct mono">96%</span></div>
+        <div class="skill-row" data-reveal><span class="name">AutoCAD</span><div class="skill-track"><div class="skill-fill" data-pct="90"></div></div><span class="pct mono">90%</span></div>
+        <div class="skill-row" data-reveal><span class="name">Navisworks</span><div class="skill-track"><div class="skill-fill" data-pct="85"></div></div><span class="pct mono">85%</span></div>
+        <div class="skill-row" data-reveal><span class="name">3ds Max</span><div class="skill-track"><div class="skill-fill" data-pct="70"></div></div><span class="pct mono">70%</span></div>
+        <div class="skill-row" data-reveal><span class="name">Photoshop</span><div class="skill-track"><div class="skill-fill" data-pct="75"></div></div><span class="pct mono">75%</span></div>
+        <div class="skill-row" data-reveal><span class="name">Premiere Pro</span><div class="skill-track"><div class="skill-fill" data-pct="65"></div></div><span class="pct mono">65%</span></div>
+        <div class="skill-row" data-reveal><span class="name">Unreal Engine</span><div class="skill-track"><div class="skill-fill" data-pct="55"></div></div><span class="pct mono">55%</span></div>
+        <div class="skill-row" data-reveal><span class="name">Moho</span><div class="skill-track"><div class="skill-fill" data-pct="50"></div></div><span class="pct mono">50%</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SERVICES -->
+  <section class="pad" id="services" style="padding-bottom:0;">
+    <div class="wrap">
+      <div class="sec-head" data-reveal>
+        <span class="sec-tag">03 — Services</span>
+        <h2>What I deliver.</h2>
+        <p>Six core services covering the full path from raw site data to construction-ready model.</p>
+      </div>
+    </div>
+    <div class="service-grid" data-reveal>
+      <div class="service-card">
+        <span class="num mono">01</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.4"><path d="M3 21V9l9-6 9 6v12M8 21v-7h8v7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <h3>Architectural BIM</h3>
+        <p>Full architectural modeling from concept through construction documentation sets.</p>
+      </div>
+      <div class="service-card">
+        <span class="num mono">02</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.4"><path d="M4 21V8l8-5 8 5v13M9 21v-6h6v6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <h3>Structural BIM</h3>
+        <p>Coordinated structural frames, footings and reinforcement-ready models.</p>
+      </div>
+      <div class="service-card">
+        <span class="num mono">03</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.4"><path d="M4 6h16M4 12h10M4 18h16" stroke-linecap="round"/><circle cx="18" cy="12" r="2"/></svg>
+        <h3>MEP BIM</h3>
+        <p>Mechanical, electrical and plumbing systems modeled for clash-free installs.</p>
+      </div>
+      <div class="service-card">
+        <span class="num mono">04</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.4"><circle cx="6" cy="6" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="18" cy="7" r="1"/><circle cx="7" cy="12" r="1"/><circle cx="13" cy="13" r="1"/><circle cx="18" cy="14" r="1"/><circle cx="5" cy="18" r="1"/><circle cx="12" cy="19" r="1"/><circle cx="18" cy="20" r="1"/><path d="M6 6l6-1 6 2M7 12l6 1 5 1M5 18l7 1 6 1" stroke-width="0.6" opacity="0.5"/></svg>
+        <h3>Scan to BIM</h3>
+        <p>Point cloud registration and conversion into intelligent, LOD-accurate models.</p>
+      </div>
+      <div class="service-card">
+        <span class="num mono">05</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.4"><rect x="4" y="4" width="7" height="7" rx="1"/><rect x="13" y="4" width="7" height="7" rx="1"/><path d="M11 7.5h2M7.5 11v6M16.5 11v2M13 17h-2" stroke-linecap="round"/></svg>
+        <h3>Revit Family Creation</h3>
+        <p>Custom parametric families built to your standard, with clean nested types.</p>
+      </div>
+      <div class="service-card">
+        <span class="num mono">06</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.4"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18" opacity="0.4"/><path d="M8.5 8.5l7 7" stroke-linecap="round"/></svg>
+        <h3>Clash Detection</h3>
+        <p>Multi-discipline coordination in Navisworks with clear, actionable clash reports.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- STATS -->
+  <section class="stats-band">
+    <div class="wrap stats-grid">
+      <div class="stat" data-reveal><div class="num" data-count="140">0</div><div class="lbl">Projects Completed</div></div>
+      <div class="stat" data-reveal><div class="num" data-count="60">0</div><div class="lbl">Happy Clients</div></div>
+      <div class="stat" data-reveal><div class="num" data-count="12">0</div><div class="lbl">Countries Served</div></div>
+      <div class="stat" data-reveal><div class="num" data-count="6">0</div><div class="lbl">Years Experience</div></div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section class="pad" id="contact">
+    <div class="wrap contact-grid">
+      <div class="contact-copy" data-reveal>
+        <span class="sec-tag">04 — Contact</span>
+        <h2>Let's coordinate<br>your next model.</h2>
+        <p>Tell me about the project — discipline, LOD target, deadline — and I'll reply with scope and timeline within a day.</p>
+        <div class="contact-links">
+          <a href="mailto:hello@mirjariyadh.com">Email <span class="arrow mono">↗</span></a>
+          <a href="#" target="_blank" rel="noopener">LinkedIn <span class="arrow mono">↗</span></a>
+          <a href="#" target="_blank" rel="noopener">GitHub <span class="arrow mono">↗</span></a>
+          <a href="#" target="_blank" rel="noopener">Upwork <span class="arrow mono">↗</span></a>
+          <a href="#" target="_blank" rel="noopener">Fiverr <span class="arrow mono">↗</span></a>
+          <a href="#" target="_blank" rel="noopener">WhatsApp <span class="arrow mono">↗</span></a>
+        </div>
+      </div>
+      <form class="contact-form" data-reveal id="contactForm">
+        <input type="text" name="name" placeholder="Name" required>
+        <input type="email" name="email" placeholder="Email" required>
+        <textarea name="message" placeholder="Project details" required></textarea>
+        <button type="submit">Send Message</button>
+      </form>
+    </div>
+    <div class="wrap"><p class="form-msg" id="formMsg"></p></div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <a href="#top" class="logo"><span class="logo-mark"></span> MIRJA RIYADH</a>
+    <ul class="foot-links">
+      <li><a href="#about">About</a></li>
+      <li><a href="#skills">Skills</a></li>
+      <li><a href="#services">Services</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+    <span class="copyright">© 2026 Mirja Riyadh</span>
+    <a href="#top" class="to-top">↑ TOP</a>
+  </div>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* ---------- typing effect ---------- */
+  var phrases = ["Architectural BIM", "Structural BIM", "MEP BIM", "Point Cloud to BIM"];
+  var typedEl = document.getElementById('typed');
+  if (typedEl) {
+    var pIndex = 0, cIndex = 0, deleting = false;
+    function tick(){
+      var current = phrases[pIndex];
+      if (!deleting){
+        cIndex++;
+        typedEl.textContent = current.slice(0, cIndex);
+        if (cIndex === current.length){ deleting = true; setTimeout(tick, 1400); return; }
+      } else {
+        cIndex--;
+        typedEl.textContent = current.slice(0, cIndex);
+        if (cIndex === 0){ deleting = false; pIndex = (pIndex + 1) % phrases.length; }
+      }
+      setTimeout(tick, deleting ? 35 : 65);
+    }
+    tick();
+  }
+
+  /* ---------- scroll reveal ---------- */
+  var revealEls = document.querySelectorAll('[data-reveal]');
+  if ('IntersectionObserver' in window){
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if (e.isIntersecting){ e.target.classList.add('is-visible'); io.unobserve(e.target); }
+      });
+    }, { threshold: 0.15 });
+    revealEls.forEach(function(el){ io.observe(el); });
+  } else {
+    revealEls.forEach(function(el){ el.classList.add('is-visible'); });
+  }
+
+  /* ---------- skill bars ---------- */
+  var skillEls = document.querySelectorAll('.skill-fill');
+  var skillIO = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if (e.isIntersecting){
+        e.target.style.width = e.target.getAttribute('data-pct') + '%';
+        skillIO.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.4 });
+  skillEls.forEach(function(el){ skillIO.observe(el); });
+
+  /* ---------- counters ---------- */
+  var counters = document.querySelectorAll('[data-count]');
+  var countIO = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){
+      if (!e.isIntersecting) return;
+      countIO.unobserve(e.target);
+      var target = parseInt(e.target.getAttribute('data-count'), 10);
+      var dur = 1400, start = null;
+      function step(ts){
+        if (!start) start = ts;
+        var p = Math.min((ts - start) / dur, 1);
+        e.target.textContent = Math.floor(p * target);
+        if (p < 1) requestAnimationFrame(step); else e.target.textContent = target;
+      }
+      requestAnimationFrame(step);
+    });
+  }, { threshold: 0.5 });
+  counters.forEach(function(el){ countIO.observe(el); });
+
+  /* ---------- contact form (static demo) ---------- */
+  var form = document.getElementById('contactForm');
+  var msg = document.getElementById('formMsg');
+  if (form){
+    form.addEventListener('submit', function(ev){
+      ev.preventDefault();
+      msg.textContent = '> message queued — replace with a form backend to send for real.';
+    });
+  }
+
+  /* ---------- hero: point cloud → wireframe canvas ---------- */
+  var canvas = document.getElementById('pointcloud');
+  if (canvas && canvas.getContext){
+    var ctx = canvas.getContext('2d');
+    var W, H, DPR = Math.min(window.devicePixelRatio || 1, 2);
+    var hero = canvas.closest('.hero');
+
+    function resize(){
+      W = hero.clientWidth; H = hero.clientHeight;
+      canvas.width = W * DPR; canvas.height = H * DPR;
+      canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+      ctx.setTransform(DPR,0,0,DPR,0,0);
+      buildModel();
+    }
+
+    // simple gable-building wireframe, defined as 3D-ish points projected to 2D with a fake perspective
+    var edges = [
+      [0,0,0],[1,0,0],[1,0,1],[0,0,1],[0,0,0], // base rectangle
+      [0,1,0],[1,1,0],[1,1,1],[0,1,1],[0,1,0], // top rectangle
+      [0.5,1.4,0],[0.5,1.4,1] // ridge
+    ];
+    var edgeLines = [
+      [0,1],[1,2],[2,3],[3,0],
+      [5,6],[6,7],[7,8],[8,5],
+      [0,5],[1,6],[2,7],[3,8],
+      [5,9],[6,9],[9,10],[8,10],[7,10]
+    ];
+    var nodes = [], lines = [];
+
+    function buildModel(){
+      var cx = W*0.72, cy = H*0.52, scale = Math.min(W,H) * 0.34;
+      nodes = edges.map(function(p){
+        var x = (p[0]-0.5) - (p[1]-0.6)*0.35;
+        var y = -(p[1]-0.6) - (p[2]-0.5)*0.22;
+        return { tx: cx + x*scale, ty: cy + y*scale };
+      });
+      // scattered start positions (the "point cloud")
+      nodes.forEach(function(n){
+        n.x = cx + (Math.random()-0.5) * W * 0.8;
+        n.y = cy + (Math.random()-0.5) * H * 0.8;
+      });
+      lines = edgeLines;
+    }
+
+    resize();
+    window.addEventListener('resize', resize);
+
+    var startTime = null;
+    var settleDur = 2600;
+
+    function easeOutCubic(t){ return 1 - Math.pow(1-t, 3); }
+
+    function draw(ts){
+      if (!startTime) startTime = ts;
+      var t = Math.min((ts - startTime) / settleDur, 1);
+      var e = easeOutCubic(t);
+
+      ctx.clearRect(0,0,W,H);
+
+      // update node positions
+      nodes.forEach(function(n){
+        n.cx = n.x + (n.tx - n.x) * e;
+        n.cy = n.y + (n.ty - n.y) * e;
+      });
+
+      // draw edges (fade in as they settle)
+      ctx.strokeStyle = 'rgba(79, 216, 196,' + (0.15 + 0.35*e) + ')';
+      ctx.lineWidth = 1;
+      lines.forEach(function(l){
+        var a = nodes[l[0]], b = nodes[l[1]];
+        ctx.beginPath();
+        ctx.moveTo(a.cx, a.cy);
+        ctx.lineTo(b.cx, b.cy);
+        ctx.stroke();
+      });
+
+      // draw points
+      nodes.forEach(function(n, i){
+        var isVertex = true;
+        var r = 1.6 + (1-e)*1.4;
+        ctx.beginPath();
+        ctx.fillStyle = i % 3 === 0 ? 'rgba(255,138,61,' + (0.5+0.5*e) + ')' : 'rgba(79,216,196,' + (0.55+0.45*e) + ')';
+        ctx.arc(n.cx, n.cy, r, 0, Math.PI*2);
+        ctx.fill();
+      });
+
+      if (t < 1 && !reduceMotion){
+        requestAnimationFrame(draw);
+      } else if (!reduceMotion){
+        idleFloat(ts);
+      }
+    }
+
+    // gentle idle drift once settled
+    function idleFloat(ts0){
+      function loop(ts){
+        var tt = (ts - ts0) / 1000;
+        ctx.clearRect(0,0,W,H);
+        ctx.strokeStyle = 'rgba(79, 216, 196, 0.42)';
+        ctx.lineWidth = 1;
+        lines.forEach(function(l){
+          var a = nodes[l[0]], b = nodes[l[1]];
+          var ax = a.tx + Math.sin(tt*0.6 + a.tx)*1.2;
+          var ay = a.ty + Math.cos(tt*0.5 + a.ty)*1.2;
+          var bx = b.tx + Math.sin(tt*0.6 + b.tx)*1.2;
+          var by = b.ty + Math.cos(tt*0.5 + b.ty)*1.2;
+          ctx.beginPath(); ctx.moveTo(ax,ay); ctx.lineTo(bx,by); ctx.stroke();
+        });
+        nodes.forEach(function(n, i){
+          var nx = n.tx + Math.sin(tt*0.6 + n.tx)*1.2;
+          var ny = n.ty + Math.cos(tt*0.5 + n.ty)*1.2;
+          ctx.beginPath();
+          ctx.fillStyle = i % 3 === 0 ? 'rgba(255,138,61,1)' : 'rgba(79,216,196,1)';
+          ctx.arc(nx, ny, 1.8, 0, Math.PI*2);
+          ctx.fill();
+        });
+        requestAnimationFrame(loop);
+      }
+      requestAnimationFrame(loop);
+    }
+
+    if (reduceMotion){
+      nodes.forEach(function(n){ n.cx = n.tx; n.cy = n.ty; });
+      startTime = performance.now() - settleDur;
+      draw(performance.now());
+    } else {
+      requestAnimationFrame(draw);
+    }
+  }
+})();
+</script>
+
 </body>
 </html>
